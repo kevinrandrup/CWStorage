@@ -1,6 +1,6 @@
 //
-//  CWSettings.h
-//  Copyright (c) 2013 com.randrup. All rights reserved.
+//  CWStorage.h
+//  Copyright (c) 2013 Kevin Randrup. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
