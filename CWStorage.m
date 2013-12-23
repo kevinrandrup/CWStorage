@@ -20,14 +20,9 @@
 
 #define CLASS_NAMES_STORAGE @"CWStorageClassNameStorage"
 
-//Creating getters and setters here to avoid use of @properties
-
 - (NSMutableDictionary *)classNames
 {
-    if (_classNames == nil) {
-        _classNames = [[[NSUserDefaults standardUserDefaults] dictionaryForKey:CLASS_NAMES_STORAGE] mutableCopy];
-        if (_classNames == nil) _classNames = [NSMutableDictionary dictionary];
-    }
+    if (_classNames == nil) _classNames = [NSMutableDictionary dictionary];
     return _classNames;
 }
 
@@ -174,20 +169,30 @@
     NSString *getterName = [self getterForSetter:setterName];
     NSString *className = [self classNameForPropertyName:getterName];
     NSString *filePath = [self filePathForPropertyName:getterName];
-    [self archiveObject:newValue ofClass:className withFilePath:filePath];
     
-    [[NSNotificationCenter defaultCenter] postNotificationName:[self notificationNameForPropertyName:getterName] object:self userInfo:@{getterName:newValue}];
-    
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT,
-                                             (unsigned long)NULL), ^(void) {
-        [[self notificationBlocks] enumerateKeysAndObjectsUsingBlock:^(NSString *key, void(^ChangedSettingBlock)(id changedSetting) , BOOL *stop) {
-            if ([key isEqualToString:getterName]) {
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    ChangedSettingBlock(newValue);
-                });
-            }
-        }];
-    });
+    if (newValue) {
+        [self archiveObject:newValue ofClass:className withFilePath:filePath];
+        [[NSNotificationCenter defaultCenter] postNotificationName:[self notificationNameForPropertyName:getterName] object:self userInfo:@{getterName:newValue}];
+        
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT,
+                                                 (unsigned long)NULL), ^(void) {
+            [[self notificationBlocks] enumerateKeysAndObjectsUsingBlock:^(NSString *key, void(^ChangedSettingBlock)(id changedSetting) , BOOL *stop) {
+                if ([key isEqualToString:getterName]) {
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        ChangedSettingBlock(newValue);
+                    });
+                }
+            }];
+        });
+    }
+    else {
+        NSError *error = nil;
+        BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:filePath];
+        if (fileExists) {
+            if (![[NSFileManager defaultManager] removeItemAtPath:filePath error:&error])
+                NSLog(@"Error deleting file at path: %@", filePath);
+        }
+    }
 }
 
 //Generic getter

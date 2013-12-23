@@ -16,10 +16,7 @@
 
 
 
-//Declare properties that conform to NSCoding here
-
-//Example property
-@property (nonatomic) UIColor *backgroundColor;
+//Declare properties here (must conform to NSCoding)
 
 
 
