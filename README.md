@@ -1,4 +1,4 @@
-CWSettings
+CWStorage
 ==========
 
 Persistently store objects simply by declaring them as properties and setting them.
